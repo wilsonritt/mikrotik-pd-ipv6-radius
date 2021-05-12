@@ -2,6 +2,8 @@
 
 ## Descrição
 
+![chrome_cttKM28FyV](https://user-images.githubusercontent.com/84033089/118003512-07bb3700-b31f-11eb-9efd-a0ae38f93aa1.png)
+
 * IMPORTANTE: durante o processo está sendo utilizado o editor de textos NANO, por questões de praticidade para usuários não tão acostumados com Linux. Ajuste conforme achar necessário.
 
 Projeto simples para instalar/configurar servidor RADIUS para receber os logs (accounting) de prefixos delegados para clientes, muito útil para provedores que necessitem manter logs de acesso em razão do Marco Civil.
