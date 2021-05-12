@@ -23,15 +23,15 @@ Telegram: @wilsonritt
   apt update && apt install git -y
   ```
 2. Instalar e configurar o Apache
-  1. Instalação:
+  * Instalação:
   ```sh
   apt install apache2 apache2-utils -y
   ```
-  2. Habilita Mod ReWrite
+  * Habilita Mod ReWrite
   ```sh
   a2enmod rewrite
   ```
-  3. Configurar o VirtualHost do Apache (editar conforme cenário)
+  * Configurar o VirtualHost do Apache (editar conforme cenário)
   ```sh
   tee /etc/apache2/sites-enabled/000-default.conf > /dev/null <<EOF
   <VirtualHost *:80>
@@ -53,13 +53,13 @@ Telegram: @wilsonritt
   # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
   EOF
   ```
-  4. Desabilita assinaturas, tokens e remove o index.html padrão por razões de segurança
+  * Desabilita assinaturas, tokens e remove o index.html padrão por razões de segurança
   ```sh
   sed -i 's/ServerTokens OS/ServerTokens Prod/g' /etc/apache2/conf-available/security.conf
   sed -i 's/ServerSignature On/ServerSignature Off/g' /etc/apache2/conf-available/security.conf
   rm /var/www/html/index.html
   ```
-  5. Reinicie o serviço
+  * Reinicie o serviço
   ```sh
   systemctl restart apache2.service
   ```
@@ -88,9 +88,11 @@ Telegram: @wilsonritt
 
 ### Servidor RADIUS
 1. Crie o banco de dados para o RADIUS
+* Abre o console do MySQL
    ```sh
    mysql
    ```
+* Cria o Banco de Dados
    ```MYSQL
    CREATE DATABASE radius;
    \q
@@ -131,11 +133,12 @@ Telegram: @wilsonritt
    ln -s ../mods-available/sql sql
    ```
 6. Configure suporte a SQL no site padrão do RADIUS
+* Abre o arquivo para edição
    ```sh
    nano /etc/freeradius/3.0/sites-available/default
    ```
+* Procure pelas linhas que contenham "sql-" ou "#sql", e deixe-as apenas como "sql". Exemplo de arquivo editado:
    ```sh
-   ### Procure pelas linhas que contenham "sql-" ou "#sql", e deixe-as apenas como "sql". Exemplo de arquivo editado ###
    ### OS 3 ASTERISCOS SÃO APENAS PARA DESTACAR, NÃO INCLUA OS '***' ###
    (...)
     authorize {
