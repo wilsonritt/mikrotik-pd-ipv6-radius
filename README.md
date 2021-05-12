@@ -252,6 +252,7 @@ Telegram: @wilsonritt
                       '%{Delegated-IPv6-Prefix}', \
                       '%{Mikrotik-Realm}')"
       ```
+      
 8. Configure o Driver SQL (driver = "rlm_sql_null"), dialect, "Connection info" e "read_clients" (descomente e configure como YES)
    * Abre o arquivo para edição
       ```sh
@@ -305,60 +306,60 @@ Telegram: @wilsonritt
       INSERT INTO nas (nasname,shortname,type,secret,community,description)
       VALUES ('IP_DO_CONCENTRADOR','NOME_DO_CONCENTRADOR','mikrotik','SENHA_SEGURA_RADIUS','','NOME_DO_CONCENTRADOR');
       \q
-   ```
+      ```
    * Reinicie o serviço do FreeRadius
       ```sh
       service freeradius restart
       ```
+
 ### Mikrotik
 
 No concentrador, basta adicionar o servidor RADIUS para envio conforme parametrização abaixo:
 
-```console
-/radius
-add address=IP_DO_SERVIDOR_RADIUS realm=NOME_DO_POP secret=SENHA_SEGURA_RADIUS service=dhcp src-address=IP_DO_CONCENTRADOR
-```
+   ```console
+   /radius
+   add address=IP_DO_SERVIDOR_RADIUS realm=NOME_DO_POP secret=SENHA_SEGURA_RADIUS service=dhcp src-address=IP_DO_CONCENTRADOR
+   ```
 
 ### Servidor WEB
 
 Para fazer o deploy da página WEB para consultas:
 
-```sh
-cd /tmp
-git clone https://github.com/wilsonritt/mikrotik-pd-ipv6-radius
-mv mikrotik-pd-ipv6-radius/logv6 /var/www/html/
-```
+   ```sh
+   cd /tmp
+   git clone https://github.com/wilsonritt/mikrotik-pd-ipv6-radius
+   mv mikrotik-pd-ipv6-radius/logv6 /var/www/html/
+   ```
 
 Após copiar o site, editar os arquivos de configuração:
-
-```sh
-cd /var/www/html/logv6/conf/
-nano config.php
-```
-
-```php
-<?php
-    define('INCLUDE_PATH','http://SEU.DOMINIO.AQUI/logv6/');   // Endereço onde vai ficar o site
-    define('COMPANY_NAME','L1 CONSULTORIA');                   // Nome de sua empresa
-    define('DB_HOST','[2001:db8::bebe:cafe]');                 // IP do MySQL do RADIUS
-    define('DB_USER','radius');                                // Usuário do radius
-    define('DB_PASS','PASSWORD');                              // Senha criada no passo '3' da configuração do RADIUS
-    define('DB','radius');                                     // Banco de dados do radius
-    define('DB_PORT','3306');                                  // Porta do MySQL
-?>
-```
+   * Abre o arquivo de configuração do sistema
+      ```sh
+      cd /var/www/html/logv6/conf/
+      nano config.php
+      ```
+   * Alterar as variáveis de acordo com seu ambiente
+      ```php
+      <?php
+          define('INCLUDE_PATH','http://SEU.DOMINIO.AQUI/logv6/');   // Endereço onde vai ficar o site
+          define('COMPANY_NAME','L1 CONSULTORIA');                   // Nome de sua empresa
+          define('DB_HOST','[2001:db8::bebe:cafe]');                 // IP do MySQL do RADIUS
+          define('DB_USER','radius');                                // Usuário do radius
+          define('DB_PASS','PASSWORD');                              // Senha criada no passo '3' da configuração do RADIUS
+          define('DB','radius');                                     // Banco de dados do radius
+          define('DB_PORT','3306');                                  // Porta do MySQL
+      ?>
+      ```
 Editar o arquivo .htaccess informando os IPs que podem acessar o servidor (NÃO SE ESQUEÇAM DESSA PARTE!)
 
-```sh
-nano /var/www/html/logv6/.htaccess
-```
-```console
-<RequireAny>
- Require ip 127.0.0.1
- Require ip ::1
-</RequireAny>
-
-```
+   ```sh
+   nano /var/www/html/logv6/.htaccess
+   ```
+   ```console
+   <RequireAny>
+    Require ip 127.0.0.1
+    Require ip ::1
+   </RequireAny>
+   ```
 
 ## O que ainda falta:
 * Criar página de login (controle feito por htaccess por enquanto)
