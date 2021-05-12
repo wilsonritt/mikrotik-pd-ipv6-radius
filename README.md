@@ -2,6 +2,8 @@
 
 ## Descrição
 
+* IMPORTANTE: durante o processo está sendo utilizado o editor de textos NANO, por questões de praticidade para usuários não tão acostumados com Linux. Ajuste conforme achar necessário.
+
 Projeto simples para instalar/configurar servidor RADIUS para receber os logs (accounting) de prefixos delegados para clientes, muito útil para provedores que necessitem manter logs de acesso em razão do Marco Civil.
 
 O projeto foi testado/homologado utilizando:
@@ -16,9 +18,9 @@ Telegram: @wilsonritt
 
 ## Pré-requisitos
 
-1. Atualizar repositórios
+1. Atualizar repositórios e instalar pacotes que serão usados
   ```sh
-  apt update
+  apt update && apt install git -y
   ```
 2. Instalar e configurar o Apache
   1. Instalação:
@@ -29,7 +31,7 @@ Telegram: @wilsonritt
   ```sh
   a2enmod rewrite
   ```
-  3. Configurar o VirtualHost do Apache
+  3. Configurar o VirtualHost do Apache (editar conforme cenário)
   ```sh
   tee /etc/apache2/sites-enabled/000-default.conf > /dev/null <<EOF
   <VirtualHost *:80>
@@ -38,7 +40,7 @@ Telegram: @wilsonritt
         DocumentRoot /var/www/html
 
         <Directory /var/www/html>
-                Options -Indexes -FollowSymLinks -MultiViews
+                Options -Indexes +FollowSymLinks -MultiViews
                 AllowOverride All
                 Order allow,deny
                 allow from all
@@ -64,20 +66,22 @@ Telegram: @wilsonritt
 
 3. PHP
   ```sh
-  apt install libapache2-mod-php php php-mysql php-cli php-mbstring php-curl -y
-  systemctl restart apache2.service
+  apt install libapache2-mod-php php php-mysql php-cli php-mbstring php-curl -y && systemctl restart apache2.service
   ```
 
 4. MariaDB
+  * Instalação
   ```sh
   apt install mariadb-server mariadb-client -y
-
+  ```
+  * Configuração (configure uma senha de root e padrões de segurança)
+  ```sh
   mysql_secure_installation
   ```
 
 5. FreeRadius
   ```sh
-  apt install freeradius-mysql 
+  apt install freeradius-mysql -y
   ```
 
 ## Configuração
@@ -96,19 +100,24 @@ Telegram: @wilsonritt
    mysql radius < /etc/freeradius/3.0/mods-config/sql/main/mysql/schema.sql
    ```
 3. Altere a senha para o usuário do RADIUS no arquivo de configuração do MySQL do FreeRadius e importe
+   * Abre o arquivo para edição
    ```sh
-   vim /etc/freeradius/3.0/mods-config/sql/main/mysql/setup.sql
+   nano /etc/freeradius/3.0/mods-config/sql/main/mysql/setup.sql
    ```
+   * Edite a seguinte linha
    ```MYSQL
    SET PASSWORD FOR 'radius'@'localhost' = PASSWORD('SUA_SENHA_AQUI');
    ```
+   * Importe o arquivo para o Banco de Dados
    ```sh
    mysql radius < /etc/freeradius/3.0/mods-config/sql/main/mysql/setup.sql
    ```
 4. Configurar as tabelas do RADIUS para suportarem os parâmetros (estou incluindo o "framedipv6address" para futura implementação, por enquanto ele só é repassado pelo accounting do PPP)
+   * Abre o console do MySQL
    ```sh
    mysql
    ```
+   * Ajusta tabelas para suportarem os campos que serão usados
    ```MYSQL
    \u radius
    ALTER TABLE radacct ADD framedipv6address VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci;
@@ -123,7 +132,7 @@ Telegram: @wilsonritt
    ```
 6. Configure suporte a SQL no site padrão do RADIUS
    ```sh
-   vim /etc/freeradius/3.0/sites-available/default
+   nano /etc/freeradius/3.0/sites-available/default
    ```
    ```sh
    ### Procure pelas linhas que contenham "sql-" ou "#sql", e deixe-as apenas como "sql". Exemplo de arquivo editado ###
@@ -176,13 +185,17 @@ Telegram: @wilsonritt
    ```
 
 7. Altere a opção "safe_characters", "accounting { column_list, type { start { query VALUES } } }"
+   * Abre o arquivo para edição
    ```sh
-   vim /etc/freeradius/3.0/mods-config/sql/main/mysql/queries.conf
+   nano /etc/freeradius/3.0/mods-config/sql/main/mysql/queries.conf
    ```
+   * Adicione os caracteres usados pelo Mikrotik para PPPoE (< e >)
    ```sh
-   ### Procure pelas linhas que contenham "sql-" ou "#sql", e deixe-as apenas como "sql". Exemplo de arquivo editado ###
    #(...)
    safe_characters = "@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_: /<>"
+   ```
+   * Adicionar os parâmetros em "column_list" e "start" > "values" (muita atenção nesta parte, respeitar os espaçamentos e sinais (\ " ,)
+   ```sh
    #(...)
    accounting {
        reference = "%{tolower:type.%{Acct-Status-Type}.query}"
@@ -238,7 +251,7 @@ Telegram: @wilsonritt
    ```
 8. Configure o Driver SQL (driver = "rlm_sql_null"), dialect, "Connection info" e "read_clients" (descomente e configure como YES)
    ```sh
-   vim /etc/freeradius/3.0/mods-enabled/sql
+   nano /etc/freeradius/3.0/mods-enabled/sql
    ```
    ```sh
    ### Exemplo de arquivo já editado ###
@@ -246,11 +259,11 @@ Telegram: @wilsonritt
    sql {
        ***driver = "rlm_sql_mysql"***
        ***dialect = "mysql"***
-       server = "localhost"
-       port = 3306
-       login = "radius"
+       ***server = "localhost"***
+       ***port = 3306***
+       ***login = "radius"***
        ***password = "SUA_SENHA_AQUI"***
-       radius_db = "radius"
+       ***radius_db = "radius"***
        acct_table1 = "radacct"
        acct_table2 = "radacct"
        postauth_table = "radpostauth"
@@ -282,8 +295,10 @@ Telegram: @wilsonritt
    mysql
    ```
    ```MYSQL
+   \u radius
    INSERT INTO nas (nasname,shortname,type,secret,community,description)
    VALUES ('IP_DO_CONCENTRADOR','NOME_DO_CONCENTRADOR','mikrotik','SENHA_SEGURA_RADIUS','','NOME_DO_CONCENTRADOR');
+   \q
    ```
 ### Mikrotik
 
@@ -299,6 +314,7 @@ add address=IP_DO_SERVIDOR_RADIUS realm=NOME_DO_POP secret=SENHA_SEGURA_RADIUS s
 Para fazer o deploy da página WEB para consultas:
 
 ```sh
+cd /tmp
 git clone https://github.com/wilsonritt/mikrotik-pd-ipv6-radius
 mv mikrotik-pd-ipv6-radius/logv6 /var/www/html/
 ```
@@ -307,7 +323,7 @@ Após copiar o site, editar os arquivos de configuração:
 
 ```sh
 cd /var/www/html/logv6/conf/
-vim config.php
+nano config.php
 ```
 
 ```php
@@ -324,7 +340,7 @@ vim config.php
 Editar o arquivo .htaccess informando os IPs que podem acessar o servidor (NÃO SE ESQUEÇAM DESSA PARTE!)
 
 ```sh
-vim /var/www/html/logv6/.htaccess
+nano /var/www/html/logv6/.htaccess
 ```
 ```console
 <RequireAny>
