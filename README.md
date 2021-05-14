@@ -16,7 +16,7 @@ O projeto foi testado/homologado utilizando:
 Em caso de correções, dúvidas ou sugestões, fiquem a vontade para entrar em contato via email ou telegram
 
 Email: contato@l1consultoria.com.br
-Telegram: @wilsonritt
+Telegram: [@wilsonritt](https://telegram.me/wilsonritt)
 
 ## Pré-requisitos
 
