@@ -38,7 +38,7 @@ Telegram: [@wilsonritt](https://telegram.me/wilsonritt)
      tee /etc/apache2/sites-enabled/000-default.conf > /dev/null <<EOF
      <VirtualHost *:80>
            ServerName xxx.domain.com.br
-           ServerAdmin wilson.ritt@l1consultoria.com.br
+           ServerAdmin seuemail@domain.com.br
            DocumentRoot /var/www/html
 
            <Directory /var/www/html>
